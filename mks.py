@@ -72,7 +72,7 @@ def vsphere_url(vm, host, args):
     path = '?host={0}&port={1}&ticket={2}&cfgFile={3}&thumbprint={4}'.format(
         vm_host, ticket.port, ticket.ticket, ticket.cfgFile,
         ticket.sslThumbprint)
-    base_url = "http://rgerganov.github.io/noVNC/5"
+    base_url = "http://localhost:6080"
     url = "{0}/vnc_auto.html?host={1}&port={2}&path={3}".format(base_url,
                                 args.mhost, args.mport, urllib.quote(path))
     return url
@@ -121,10 +121,11 @@ def main():
 
     if not vm:
         err('Cannot find the specified VM')
-    if si.content.about.version.startswith("6"):
-        url = vsphere6_url(vm, host)
-    else:
-        url = vsphere_url(vm, host, args)
+    # vsphere 6 console need import vsphere cert in browser, so we use all version console by mks proxy
+    # if si.content.about.version.startswith("6"):
+    #     url = vsphere6_url(vm, host)
+    # else:
+    url = vsphere_url(vm, host, args)
     webbrowser.open(url)
 
 if __name__ == '__main__':
