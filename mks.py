@@ -128,5 +128,48 @@ def main():
     url = vsphere_url(vm, host, args)
     webbrowser.open(url)
 
+class MksProxy(object):
+
+    def __init__(self, mhost, mport, url):
+        self.mhost = mhost
+        self.mport = mport
+        self.url = url
+
+def console(url):
+    mks_proxy = MksProxy('localhost', 6090, url)
+
+    user, pwd, host, port, query = parse(url)
+
+    si = connect.SmartConnect(host=host, user=user, pwd=pwd, port=port)
+    atexit.register(connect.Disconnect, si)
+
+    vm = None
+    if query.startswith('uuid='):
+        uuid = query[5:]
+        vm = si.content.searchIndex.FindByUuid(None, uuid, True, True)
+    elif query.startswith('name='):
+        name = query[5:]
+        content = si.content
+        objView = content.viewManager.CreateContainerView(content.rootFolder,
+                                                          [vim.VirtualMachine],
+                                                          True)
+        vmList = objView.view
+        for curr_vm in vmList:
+            if curr_vm.name == name:
+                vm = curr_vm
+                break
+        objView.Destroy()
+    else:
+        err('Unsupported VM identifier: ' + query)
+
+    if not vm:
+        err('Cannot find the specified VM')
+    # vsphere 6 console need import vsphere cert in browser, so we use all version console by mks proxy
+    # if si.content.about.version.startswith("6"):
+    #     url = vsphere6_url(vm, host)
+    # else:
+    url = vsphere_url(vm, host, mks_proxy)
+    return url
+
 if __name__ == '__main__':
     main()
