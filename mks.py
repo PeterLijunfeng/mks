@@ -23,6 +23,7 @@ import sys
 import urllib
 import urlparse
 import webbrowser
+import settings
 
 from pyVim import connect
 from pyVmomi import vim
@@ -72,19 +73,19 @@ def vsphere_url(vm, host, args):
     path = '?host={0}&port={1}&ticket={2}&cfgFile={3}&thumbprint={4}'.format(
         vm_host, ticket.port, ticket.ticket, ticket.cfgFile,
         ticket.sslThumbprint)
-    base_url = "http://localhost:6080"
+    base_url = settings.NOVNC_WEB
     url = "{0}/vnc_auto.html?host={1}&port={2}&path={3}".format(base_url,
                                 args.mhost, args.mport, urllib.quote(path))
     return url
 
-def vsphere6_url(vm, host):
-    # Generates console URL for vSphere 6
-    ticket = vm.AcquireTicket('webmks')
-    vm_host = ticket.host if ticket.host else host
-    path = "ticket/" + ticket.ticket
-    base_url = "https://rgerganov.github.io/noVNC/6"
-    url = "{0}/vnc_auto.html?host={1}&path={2}".format(base_url, vm_host, urllib.quote(path))
-    return url
+# def vsphere6_url(vm, host):
+#     # Generates console URL for vSphere 6
+#     ticket = vm.AcquireTicket('webmks')
+#     vm_host = ticket.host if ticket.host else host
+#     path = "ticket/" + ticket.ticket
+#     base_url = "https://rgerganov.github.io/noVNC/6"
+#     url = "{0}/vnc_auto.html?host={1}&path={2}".format(base_url, vm_host, urllib.quote(path))
+#     return url
 
 def main():
     parser = argparse.ArgumentParser()
@@ -101,9 +102,9 @@ def main():
     atexit.register(connect.Disconnect, si)
 
     vm = None
-    if query.startswith('uuid='):
-        uuid = query[5:]
-        vm = si.content.searchIndex.FindByUuid(None, uuid, True, True)
+    if query.startswith('instanceUuid='):
+        instanceUuid = query[5:]
+        vm = si.content.searchIndex.FindByUuid(None, instanceUuid, True, True)
     elif query.startswith('name='):
         name = query[5:]
         content = si.content
@@ -113,6 +114,18 @@ def main():
         vmList = objView.view
         for curr_vm in vmList:
             if curr_vm.name == name:
+                vm = curr_vm
+                break
+        objView.Destroy()
+    elif query.startswith('uuid='):
+        uuid = query[5:]
+        content = si.content
+        objView = content.viewManager.CreateContainerView(content.rootFolder,
+                                                          [vim.VirtualMachine],
+                                                          True)
+        vmList = objView.view
+        for curr_vm in vmList:
+            if curr_vm.config.uuid == uuid:
                 vm = curr_vm
                 break
         objView.Destroy()
@@ -136,7 +149,7 @@ class MksProxy(object):
         self.url = url
 
 def console(url):
-    mks_proxy = MksProxy('localhost', 6090, url)
+    mks_proxy = MksProxy(settings.MKS_PROXY_HOST, settings.MKS_PROXY_PORT, url)
 
     user, pwd, host, port, query = parse(url)
 
@@ -144,9 +157,9 @@ def console(url):
     atexit.register(connect.Disconnect, si)
 
     vm = None
-    if query.startswith('uuid='):
-        uuid = query[5:]
-        vm = si.content.searchIndex.FindByUuid(None, uuid, True, True)
+    if query.startswith('instanceUuid='):
+        instanceUuid = query[5:]
+        vm = si.content.searchIndex.FindByUuid(None, instanceUuid, True, True)
     elif query.startswith('name='):
         name = query[5:]
         content = si.content
@@ -156,6 +169,18 @@ def console(url):
         vmList = objView.view
         for curr_vm in vmList:
             if curr_vm.name == name:
+                vm = curr_vm
+                break
+        objView.Destroy()
+    elif query.startswith('uuid='):
+        uuid = query[5:]
+        content = si.content
+        objView = content.viewManager.CreateContainerView(content.rootFolder,
+                                                          [vim.VirtualMachine],
+                                                          True)
+        vmList = objView.view
+        for curr_vm in vmList:
+            if curr_vm.config.uuid == uuid:
                 vm = curr_vm
                 break
         objView.Destroy()

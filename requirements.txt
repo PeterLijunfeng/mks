@@ -1,3 +1,4 @@
 pyvmomi
 websockify
 flask
+requests
