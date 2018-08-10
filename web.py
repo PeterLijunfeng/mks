@@ -32,7 +32,7 @@ def get_console_url():
     resp = requests.get(settings.UCMP_URL + '/ucmp3/service_instance/ecs/' + id, headers=myheaders, verify=False)
     if resp.ok:
         resp_json = resp.json()
-        provider_id = resp_json.get('service_instance_id')
+        provider_id = resp_json.get('provider_id')
         if provider_id is None:
             abort(400, 'cant find provider_id by instance %s' % id)
 
