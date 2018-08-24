@@ -68,7 +68,10 @@ def parse(url):
 
 def vsphere_url(vm, host, args):
     # Generates console URL for vSphere versions prior 6.0
-    ticket = vm.AcquireTicket('mks')
+    try:
+        ticket = vm.AcquireTicket('mks')
+    except vim.fault.InvalidPowerState, e:
+        raise ValueError('VM is poweredOff now, please poweredOn');
     vm_host = ticket.host if ticket.host else host
     path = '?host={0}&port={1}&ticket={2}&cfgFile={3}&thumbprint={4}'.format(
         vm_host, ticket.port, ticket.ticket, ticket.cfgFile,
