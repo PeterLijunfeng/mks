@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright (c) 2015 Radoslav Gerganov
 # All Rights Reserved.
 #
@@ -71,7 +72,7 @@ def vsphere_url(vm, host, args):
     try:
         ticket = vm.AcquireTicket('mks')
     except vim.fault.InvalidPowerState, e:
-        raise ValueError('VM is poweredOff now, please poweredOn');
+        raise ValueError('云主机当前状态为关机, 请同步或启动云主机');
     vm_host = ticket.host if ticket.host else host
     path = '?host={0}&port={1}&ticket={2}&cfgFile={3}&thumbprint={4}'.format(
         vm_host, ticket.port, ticket.ticket, ticket.cfgFile,
@@ -194,7 +195,7 @@ def console(url):
 
     if not vm:
         # err('Cannot find the specified VM')
-        raise ValueError('Cannot find the specified VM');
+        raise ValueError('云厂商已经不存在该虚拟机');
     # vsphere 6 console need import vsphere cert in browser, so we use all version console by mks proxy
     # if si.content.about.version.startswith("6"):
     #     url = vsphere6_url(vm, host)

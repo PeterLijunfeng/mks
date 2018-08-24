@@ -40,7 +40,7 @@ def get_console_url():
 
             # check provider id
             if provider_id is None:
-                return Response(json.dumps({'code': '404', 'message': 'cant find provider_id by instance %s' % id}),
+                return Response(json.dumps({'code': '404', 'message': 'ucmp中找不到实例%s的云厂商ID' % id}),
                                 404)
 
             # send request get provider by provider_id
@@ -53,20 +53,20 @@ def get_console_url():
                 # check provider auth
                 if default_auth is None:
                     return Response(
-                        json.dumps({'code': '404', 'message': 'cant find default_auth by provider %s' % provider_id}),
+                        json.dumps({'code': '404', 'message': 'ucmp中找不到云厂商%s的认证' % provider_id}),
                         404)
                 user = default_auth.get('user')
                 if user is None:
                     return Response(
-                        json.dumps({'code': '404', 'message': 'cant find user by provider %s' % provider_id}), 404)
+                        json.dumps({'code': '404', 'message': 'ucmp中找不到云厂商%s的用户' % provider_id}), 404)
                 password = default_auth.get('password')
                 if password is None:
                     return Response(
-                        json.dumps({'code': '404', 'message': 'cant find password by provider %s' % provider_id}), 404)
+                        json.dumps({'code': '404', 'message': 'ucmp中找不到云厂商%s的密码' % provider_id}), 404)
                 vsphere_server = default_auth.get('vsphere_server')
                 if vsphere_server is None:
                     return Response(
-                        json.dumps({'code': '404', 'message': 'cant find vsphere_server by provider %s' % provider_id}),
+                        json.dumps({'code': '404', 'message': 'ucmp中找不到云厂商%s的服务地址 %s' % provider_id}),
                         404)
                 try:
                     url = console('mks://%s:%s@%s/?uuid=%s' % (user, password, vsphere_server, id))
