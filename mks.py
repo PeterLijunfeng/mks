@@ -180,6 +180,8 @@ def console(url):
                                                           True)
         vmList = objView.view
         for curr_vm in vmList:
+            if curr_vm.config == None or curr_vm.config.uuid == None:
+                continue
             if curr_vm.config.uuid == uuid:
                 vm = curr_vm
                 break
@@ -188,7 +190,8 @@ def console(url):
         err('Unsupported VM identifier: ' + query)
 
     if not vm:
-        err('Cannot find the specified VM')
+        # err('Cannot find the specified VM')
+        raise ValueError('Cannot find the specified VM');
     # vsphere 6 console need import vsphere cert in browser, so we use all version console by mks proxy
     # if si.content.about.version.startswith("6"):
     #     url = vsphere6_url(vm, host)

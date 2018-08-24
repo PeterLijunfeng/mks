@@ -37,8 +37,11 @@ def get_console_url():
         if resp.ok:
             resp_json = resp.json()
             provider_id = resp_json.get('provider_id')
+
+            # check provider id
             if provider_id is None:
-                abort(400, 'cant find provider_id by instance %s' % id)
+                return Response(json.dumps({'code': '404', 'message': 'cant find provider_id by instance %s' % id}),
+                                404)
 
             # send request get provider by provider_id
             resp = requests.get(settings.UCMP_URL + '/iaasmgt3/provider/%s' % provider_id, headers=myheaders,
@@ -46,24 +49,35 @@ def get_console_url():
             if resp.ok:
                 resp_json = resp.json()
                 default_auth = resp_json.get('default_auth')
+
+                # check provider auth
                 if default_auth is None:
-                    abort(400, 'cant find default_auth by provider %s' % provider_id)
+                    return Response(
+                        json.dumps({'code': '404', 'message': 'cant find default_auth by provider %s' % provider_id}),
+                        404)
                 user = default_auth.get('user')
                 if user is None:
-                    abort(400, 'cant find user by provider %s' % provider_id)
+                    return Response(
+                        json.dumps({'code': '404', 'message': 'cant find user by provider %s' % provider_id}), 404)
                 password = default_auth.get('password')
                 if password is None:
-                    abort(400, 'cant find password by provider %s' % provider_id)
+                    return Response(
+                        json.dumps({'code': '404', 'message': 'cant find password by provider %s' % provider_id}), 404)
                 vsphere_server = default_auth.get('vsphere_server')
                 if vsphere_server is None:
-                    abort(400, 'cant find vsphere_server by provider %s' % provider_id)
-
-                url = console('mks://%s:%s@%s/?uuid=%s' % (user, password, vsphere_server, id))
-                urls.append(url)
+                    return Response(
+                        json.dumps({'code': '404', 'message': 'cant find vsphere_server by provider %s' % provider_id}),
+                        404)
+                try:
+                    url = console('mks://%s:%s@%s/?uuid=%s' % (user, password, vsphere_server, id))
+                    urls.append(url)
+                except ValueError, e:
+                    return Response(
+                        json.dumps({'code': '404', 'message': str(e.message)}), 404)
             else:
-                abort(401, 'token %s is invalid' % token)
+                return resp
         else:
-            abort(401, 'token %s is invalid' % token)
+            return resp
     return Response(json.dumps(urls), mimetype='application/json')
 
 
