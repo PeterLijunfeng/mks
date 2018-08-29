@@ -178,18 +178,7 @@ def console(url):
         objView.Destroy()
     elif query.startswith('uuid='):
         uuid = query[5:]
-        content = si.content
-        objView = content.viewManager.CreateContainerView(content.rootFolder,
-                                                          [vim.VirtualMachine],
-                                                          True)
-        vmList = objView.view
-        for curr_vm in vmList:
-            if curr_vm.config == None or curr_vm.config.uuid == None:
-                continue
-            if curr_vm.config.uuid == uuid:
-                vm = curr_vm
-                break
-        objView.Destroy()
+        vm = si.content.searchIndex.FindByUuid(None, uuid, True, False)
     else:
         err('Unsupported VM identifier: ' + query)
 
